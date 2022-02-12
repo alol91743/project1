@@ -1,91 +1,124 @@
-from ast import And
 import datetime
-from operator import and_
 from tkinter import *
 from tkinter import ttk
+import tkinter
+from tkinter import messagebox
 from tkinter.scrolledtext import ScrolledText
 from tkcalendar import *
 import mysql.connector
+from tabulate import tabulate
 
 mydb = mysql.connector.connect(host="localhost", port=3306, user="root", passwd='comp', database='smdb') #change port to 3307
-
-print(mydb)
-
 mycursor = mydb.cursor()
 
-
+paddings = {'padx': 5, 'pady': 5}
+font = {'font': ('Helvetica', 11)}
+entry_font = {'font': ('Helvetica', 11, 'italic')}
 
 main = Tk()
+main.geometry('500x400')
 main.title('AAA School Management System')
-main.geometry('600x400')
+logo = PhotoImage(file='AAA.png')
+panel = Label(main, image = logo)
+panel.pack(fill = "both", pady=10)
 
-Label(main, text="SCHOOL MANAGEMENT SYSTEM").pack()
+lb=LabelFrame(main, text='Login')
+lb.pack()
+#Login page
+uidl = Label(lb, text='Username', **font)
+uidl.grid(column=0, row=0, **paddings)
 
-Label(main, text="Name").pack()
-name= Entry(main, width=19)
-name.pack()
+uid = Entry(lb, width=25, **entry_font)
+uid.grid(column=1, row=0, **paddings)
 
-Label(main, text="Contact Number").pack()
-contact= Entry(main, width=19)
-contact.pack()
+pwdl = Label(lb, text='Password', **font)
+pwdl.grid(column=0, row=1, **paddings)
 
-Label(main, text="Email Address").pack()
-email= Entry(main, width=19)
-email.pack()
-
-Label(main, text="Gender").pack()
-gender= Entry(main, width=19)
-gender.pack()
-
-Label(main, text="Date of Birth (DOB)").pack()
-dob = DateEntry(main)
-dob.pack()
-
-Label(main, text="Stream").pack()
-stream= Entry(main, width=19)
-stream.pack()
-
-rec_confirm = Label(main, text='Record Added')
+pwd = Entry(lb, width=25, show="*", **entry_font)
+pwd.grid(column=1, row=1, **paddings)
 
 
+def rec_add():
+    top1= Toplevel(main)
+    top1.geometry('400x300')
+    top= LabelFrame(top1, text="Add Records")
+    top.pack()
+    Label(top, text="Name", **font).grid(column=0, row=1, **paddings)
+    name= Entry(top, width=19, **entry_font)
+    name.grid(column=1, row=1, **paddings)
 
+    Label(top, text="Contact Number", **font).grid(column=0, row=2, **paddings)
+    contact= Entry(top, width=19, **entry_font)
+    contact.grid(column=1, row=2, **paddings)
 
+    Label(top, text="Email Address", **font).grid(column=0, row=3, **paddings)
+    email= Entry(top, width=19, **entry_font)
+    email.grid(column=1, row=3, **paddings)
 
-'''def checkemp():
-    return (not name.get()) and (not contact.get()) and (not email.get()) and (not stream.get())'''
+    Label(top, text="Gender", **font).grid(column=0, row=4, **paddings)
+    gender= Entry(top, width=19, **entry_font)
+    gender.grid(column=1, row=4, **paddings)
 
-def add_records():
-    sql = "INSERT INTO students (name, contact, email, gender, dob, stream) VALUES (%s, %s, %s, %s, %s, %s)"
-    val = (str(name.get()), str(contact.get()), str(email.get()), str(gender.get()), str(dob.get()), str(stream.get()))
-    mycursor.execute(sql, val)
-    mydb.commit()
+    Label(top, text="Date of Birth (DOB)", **font).grid(column=0, row=5, **paddings)
+    dob = DateEntry(top)
+    dob.grid(column=1, row=5, **paddings)
+
+    Label(top, text="Stream", **font).grid(column=0, row=6, **paddings)
+    stream= Entry(top, width=19, **entry_font)
+    stream.grid(column=1, row=6, **paddings)
     
-    name.delete(0, 'end') 
-    contact.delete(0, 'end')
-    email.delete(0, 'end')
-    y.set('Choose an option.')
-    stream.delete(0, 'end')
+    def add_records():
+        sql = "INSERT INTO students (name, contact, email, gender, dob, stream) VALUES (%s, %s, %s, %s, %s, %s)"
+        val = (str(name.get()), str(contact.get()), str(email.get()), str(gender.get()), str(dob.get()), str(stream.get()))
+        mycursor.execute(sql, val)
+        mydb.commit()
+        messagebox.showinfo('status','Record Added.')
+        name.delete(0, 'end') 
+        contact.delete(0, 'end')
+        email.delete(0, 'end')
+        stream.delete(0, 'end')
+        gender.delete(0,'end')
 
-    rec_confirm.pack()
+        
+
+    btna = Button(top, text="  Add  ", command=add_records)
+    btna.grid(column=1, row=7, **paddings)
 
 def rec_show():
-    top = Toplevel(main)
+    top2 = Toplevel(main)
     mycursor.execute('SELECT * FROM students')
     txt = mycursor.fetchall()
-    txt_box = ScrolledText(top)
+    txt1=tabulate(txt, headers=["Name", "Contact", "Email", "Gender", "DOB", "Stream"])
+    lbframe = LabelFrame(top2, text='Records')
+    lbframe.pack()
+    txt_box = ScrolledText(lbframe)
     txt_box.configure(wrap='word')
-    for i in txt:
-        txt_box.insert(END, i)
-        txt_box.insert(END, '\n')
+    txt_box.insert(END, txt1)
+    txt_box.configure(state='disabled')
     txt_box.pack()
-    top.mainloop()
+    top2.mainloop()
+lbframe2=LabelFrame(main, text='Options')
+btn_add = Button(lbframe2, text='Add Records', command=rec_add, **font)
+btn_show = Button(lbframe2, text='Show Records', command=rec_show, **font)
 
+def checkid():
+    uidg=uid.get()
+    mycursor.execute('SELECT * from users')
+    if (uid.get(), pwd.get()) in mycursor.fetchall():
+        messagebox.showinfo('Status', 'Logged in.')
+        for widget in lb.winfo_children():
+            widget.configure(state='disabled')
+        if uidg=='admin':
+            lbframe2.pack()
+            btn_add.grid(column=0, row=0, **paddings)
+            btn_show.grid(column=1, row=0, **paddings)
+        else:
+            btn_show.grid(**paddings)
+            
+    else:
+        messagebox.showerror('Error','Enter Valid Crentials.')
 
-btn = Button(main, text="Add Record", command=add_records)
-btn.pack()
-rec = Button(main, text="Show Records", command=rec_show)
-rec.pack()
-
+loginbtn = Button(lb, text = 'Login', command=checkid, **font)
+loginbtn.grid(column=1, row=3, **paddings)
 
 main.mainloop()
-
