@@ -1,3 +1,1 @@
 # project1
-uid = alol91743@gmail.com
-pwd = 27012004alok
