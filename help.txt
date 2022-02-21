@@ -1,0 +1,8 @@
+login details
+uid = admin
+pwd = password
+
+Options
+1. Add Records
+2. Delete Records -> can be used for editing records too. -> delete and then add updated record
+3. Show Record -> also contains search option
