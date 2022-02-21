@@ -8,7 +8,7 @@ from tkcalendar import *
 import mysql.connector
 from tabulate import tabulate
 
-mydb = mysql.connector.connect(host="localhost", port=3306, user="root", passwd='comp', database='smdb') #change port to 3307
+mydb = mysql.connector.connect(host="localhost", user="root", passwd='comp', database='smdb') #change port to 3307
 mycursor = mydb.cursor()
 
 paddings = {'padx': 5, 'pady': 5}
@@ -97,10 +97,23 @@ def rec_show():
     txt_box.configure(state='disabled')
     txt_box.pack()
     top2.mainloop()
+def rec_del():
+    top3=Toplevel(main)
+    lb_del = LabelFrame(top3)
+    ent = Entry(top3, width=19, **entry_font)
+    ent.grid(column=0, row=0, **paddings)
+    ent.insert(0, "Enter name")
+    def delr():
+        mycursor.execute("DELETE * FROM students WHERE name='"+ent.get()+"'")
+        mydb.commit()
+        messagebox.showinfo('status','Record Deleted.')
+        
+    delbtn = Button(top3, text='Delete', command=delr)
+    delbtn.grid(column=0, row=1, **paddings)
 lbframe2=LabelFrame(main, text='Options')
 btn_add = Button(lbframe2, text='Add Records', command=rec_add, **font)
 btn_show = Button(lbframe2, text='Show Records', command=rec_show, **font)
-
+btn_del = Button(lbframe2, text='Delete Records', command=rec_del, **font)
 def checkid():
     uidg=uid.get()
     mycursor.execute('SELECT * from users')
@@ -112,13 +125,19 @@ def checkid():
             lbframe2.pack()
             btn_add.grid(column=0, row=0, **paddings)
             btn_show.grid(column=1, row=0, **paddings)
+            btn_del.grid(column=2, row=0, **paddings)
         else:
             btn_show.grid(**paddings)
             
     else:
         messagebox.showerror('Error','Enter Valid Crentials.')
 
+def forgot_pwd():
+    messagebox.showinfo('Help', 'Contact tech supervisor.')
+    
 loginbtn = Button(lb, text = 'Login', command=checkid, **font)
 loginbtn.grid(column=1, row=3, **paddings)
+helpbtn = Button(lb, text = 'Forgot password?', command=forgot_pwd, **font)
+helpbtn.grid(column=1, row=4, **paddings)
 
 main.mainloop()
